@@ -138,6 +138,7 @@
 
 		var Uploader = {
 			working: false,
+			current: null,
 			queue: [],
 			add: function(bucket, file) {
 				var key = escape( file.fileName );
@@ -151,12 +152,12 @@
 				Uploader.working = true;
 				var cur = Uploader.queue.shift();
 				var status = '<h3><img src="assets/images/spinner.gif" /> uploading...</h3>' +
-					'<h6>' + cur.key + '</h6>' +
+					'<h6>' + unescape(cur.key) + '</h6>' +
 					'<p id="queue_size">';
-				if (Uploader.queue.length > 0) {
+				if (Uploader.queue.length > 0)
 					status += Uploader.queue.length + ' remaining in queue.'
-				}
 				status += '</p>'
+				status += '<p><a href="#" class="abort" onclick="return Uploader.uploadCancel();">Abort Uploads</a></p>';
 				$.blockUI(status);
 
 				reader = new FileReader();
@@ -165,8 +166,16 @@
 				reader.onload = function(evt) {
 					MD5 = md5( evt.target.result );
 
-					S3Ajax.put(cur.bucket, cur.key, cur.file, evt.target.result, MD5, {}, Uploader.uploadComplete, Uploader.uploadError);
+					Uploader.current = S3Ajax.put(cur.bucket, cur.key, cur.file, evt.target.result, MD5, {}, Uploader.uploadComplete, Uploader.uploadError);
 				};
+			},
+			uploadCancel: function() {
+				if ( !Uploader.working ) return false;
+
+				if ( Uploader.current ) Uploader.current.abort();
+				Uploader.queue = [];
+				Uploader.uploadComplete();
+				return false;
 			},
 			uploadComplete: function() {
 				if (Uploader.queue.length > 0) {
@@ -174,8 +183,8 @@
 				}
 				else {
 					Uploader.working = false;
-					$.unblockUI();
-					fm.listKeys();
+					Uploader.current = null;
+					window.location.reload();
 				}
 			},
 			uploadError: function(req) {

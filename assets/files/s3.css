@@ -19,3 +19,4 @@ h2 {text-align:center}
 #active.busy {background:#fff url(../images/big-spinner.gif) no-repeat center center}
 ul {list-style:none;padding:0}
 ul li {display:inline}
+.abort {color:black;font-size:12px}

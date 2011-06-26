@@ -236,7 +236,7 @@ S3Ajax = {
 		if (!kwArgs.content_type && kwArgs.method == 'PUT') kwArgs.content_type = 'text/plain';
 		if (kwArgs.content_type) hdrs['Content-Type'] = kwArgs.content_type;
 		else
-		kwArgs.content_type = '';
+			kwArgs.content_type = '';
 
 		// Set the timestamp for this request.
 		var http_date = (new Date()).toUTCString();

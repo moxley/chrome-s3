@@ -1,4 +1,8 @@
 2011-06-26 (Flynsarmy):
+- Added upload abort link
+- File names in the uploading window shouldn't be escaped
+
+2011-06-25 (Flynsarmy):
 - Support for upload/delete of files and buckets
 - Show error message when using invalid or no credentials
 - No longer downloads bucket list when it's not being displayed
