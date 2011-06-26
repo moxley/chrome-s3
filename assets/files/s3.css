@@ -1,0 +1,21 @@
+body {padding:10px 20px;background:#eee;font-family:Arial, Helvetica, sans-serif;font-size:12px}
+a {cursor:pointer}
+#active table {width:100%}
+td {height:22px}
+tr:hover td {background-color:#f8f8f8}
+tr th {text-align:left}
+h2 {text-align:center}
+#actions {float:right;margin-right:5px}
+#actions a {padding:0px 5px 0px 0px}
+#credentials label {display:block;margin:0 auto;padding-right:10px}
+#credentials div {padding-bottom:10px}
+#active {background:#fff;-webkit-border-radius:10px;border:1px solid #ddd;padding:10px;margin:20px 0;min-height:100px}
+#active h2 {float:right;color:#888;font-weight:normal}
+#help {background:url(../images/help.png) no-repeat center left;padding:4px 20px}
+#updateCredentials {background:url(../images/key.png) no-repeat center left;padding:4px 20px}
+#createBucket {background:url(../images/add.png) no-repeat center left;padding:4px 20px}
+#keylist .del, #buckets .del {display:none}
+#keylist TR:hover .del, #buckets TR:hover .del {display:inherit}
+#active.busy {background:#fff url(../images/big-spinner.gif) no-repeat center center}
+ul {list-style:none;padding:0}
+ul li {display:inline}

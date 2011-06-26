@@ -1,0 +1,5 @@
+2011-06-26 (Flynsarmy):
+- Support for upload/delete of files and buckets
+- Show error message when using invalid or no credentials
+- No longer downloads bucket list when it's not being displayed
+- Other minor improvements
