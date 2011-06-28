@@ -1,4 +1,5 @@
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <!--
 	Copyright Jesse Andrews, 2005-2010
 	http://overstimulate.com
@@ -23,7 +24,6 @@
 	<script src="assets/files/humanmsg.js"></script>
 	<script src="assets/files/account.js"></script>
 	<script src="assets/files/sha1.js"></script>
-	<script src="assets/files/MD5.js"></script>
 	<script src="assets/files/S3Ajax.js"></script>
 
 	<script type="application/x-javascript">
@@ -121,21 +121,6 @@
 			}
 		}
 
-		S3Ajax.upload = function(bucket, key, file, cb) {
-			var params = {};
-			try {
-				params.content_type = mimeSVC.getTypeFromFile(file);
-				// TODO: if this fails, we should do our own lookup ... instead of just defaulting to text/plain
-			} catch(e) {};
-			S3Ajax.put(bucket, key, file, params, function() {
-				cb();
-			}, function(req) {
-				humanMsg.displayMsg('Upload to <strong>' + bucket + '</strong>: ' +
-					req.responseXML.getElementsByTagName('Message')[0].childNodes[0].textContent);
-				cb();
-			});
-		}
-
 		var Uploader = {
 			working: false,
 			current: null,
@@ -152,7 +137,7 @@
 				Uploader.working = true;
 				var cur = Uploader.queue.shift();
 				var status = '<h3><img src="assets/images/spinner.gif" /> uploading...</h3>' +
-					'<h6>' + unescape(cur.key) + '</h6>' +
+					'<h4>' + unescape(cur.key) + ' <span id="upload_progress"></span></h4>' +
 					'<p id="queue_size">';
 				if (Uploader.queue.length > 0)
 					status += Uploader.queue.length + ' remaining in queue.'
@@ -160,14 +145,16 @@
 				status += '<p><a href="#" class="abort" onclick="return Uploader.uploadCancel();">Abort Uploads</a></p>';
 				$.blockUI(status);
 
-				reader = new FileReader();
-				// Read in the image file as a binary string.
-				reader.readAsBinaryString( cur.file );
-				reader.onload = function(evt) {
-					MD5 = md5( evt.target.result );
-
-					Uploader.current = S3Ajax.put(cur.bucket, cur.key, cur.file, evt.target.result, MD5, {}, Uploader.uploadComplete, Uploader.uploadError);
-				};
+				Uploader.current = S3Ajax.put(cur.bucket, cur.key, cur.file, {}, Uploader.uploadComplete, Uploader.uploadError, Uploader.uploadProgress);
+			},
+			uploadProgress: function(evt) {
+				console.log('onprogress executed');
+				if (evt.lengthComputable) {
+					var percentComplete = parseInt(evt.loaded / evt.total * 100);
+					$('#upload_progress').html('('+percentComplete + '%)');
+				} else {
+					// Unable to compute progress information since the total size is unknown
+				}
 			},
 			uploadCancel: function() {
 				if ( !Uploader.working ) return false;

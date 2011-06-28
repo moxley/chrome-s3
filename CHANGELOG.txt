@@ -1,3 +1,7 @@
+2011-06-28 (Flynsarmy):
+- Massive performance improvement for large uploads
+- Upload progress now displayed
+
 2011-06-26 (Flynsarmy):
 - Added upload abort link
 - File names in the uploading window shouldn't be escaped

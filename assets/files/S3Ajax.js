@@ -90,7 +90,7 @@ S3Ajax = {
 	/**
 	 Put data into a key in a bucket.
 	 */
-	put: function(bucket, key, file, content, md5, params, cb, err_cb) {
+	put: function(bucket, key, file, params, cb, err_cb, progress_cb) {
 		if (!params.content_type) params.content_type = this.DEFAULT_CONTENT_TYPE;
 		if (!params.acl) params.acl = this.DEFAULT_ACL;
 
@@ -99,13 +99,13 @@ S3Ajax = {
 			bucket: bucket,
 			key: key,
 			file: file,
-			md5: md5,
-			content: content,
+			content: file,
 			content_type: params.content_type,
 			meta: params.meta,
 			acl: params.acl,
 			load: cb,
-			error: err_cb
+			error: err_cb,
+			progress: progress_cb
 		});
 	},
 
@@ -242,7 +242,6 @@ S3Ajax = {
 		var http_date = (new Date()).toUTCString();
 		hdrs['x-amz-date'] = http_date;
 
-		var content_MD5 = '';
 		var content = kwArgs.content;
 
 		//if (kwArgs.file)
@@ -288,6 +287,8 @@ S3Ajax = {
 		var req = new XMLHttpRequest();
 		req.open(kwArgs.method, url, true);
 		for (var k in hdrs) req.setRequestHeader(k, hdrs[k]);
+		if ( kwArgs.progress )
+			req.upload.addEventListener("progress", kwArgs.progress, false);
 		req.onreadystatechange = function() {
 			if (req.readyState == 4) {
 				// Stash away the last request details, if DEBUG active.
