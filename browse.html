@@ -87,7 +87,7 @@
 				req.send(null);
 
 				xslt.importStylesheet(req.responseXML);
-				$('#location').html("<a href='account.html'>s3</a>://<a href='#' onclick='browse(); return false'>"+bucket+"</a>")
+				$('#location').html("<a href='account.html'>s3</a>://<a href=\"browse.html?"+bucket+"\">"+bucket+"</a><span id='key_location'></span>")
 				fm.listKeys();
 			},
 
@@ -96,6 +96,21 @@
 				if (keylist) {
 					keylist.parentNode.removeChild(keylist);
 				}
+
+				//Display the breadcrumb
+				if ( prefix )
+				{
+					$('#key_location').html('');
+					var crumb = '';
+					var breadcrumb = prefix.split('/');
+					for ( i=0; i<breadcrumb.length; i++ )
+					{
+						if ( !breadcrumb[i].length ) continue;
+						crumb = crumb + breadcrumb[i] + '/';
+						$('#key_location').append("/<a href='#' onclick=\"browse('"+crumb+"'); return false;\">"+breadcrumb[i]+"</a>");
+					}
+				}
+
 				$('#active').addClass('busy')
 				S3Ajax.listKeys(bucket,
 					{prefix: prefix, delimiter: '/'},
@@ -126,7 +141,7 @@
 			current: null,
 			queue: [],
 			add: function(bucket, file) {
-				var key = escape( file.fileName );
+				var key = window.location.hash.substr(1) + escape( file.fileName );
 				Uploader.queue.push({bucket: bucket, key: key, file: file});
 				$('#queue_size').html(Uploader.queue.length + ' remaining in queue.');
 				if (!Uploader.working) {

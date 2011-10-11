@@ -29,16 +29,20 @@
 			</tr>
 		</thead>
 		<tbody>
+			<tr class='s3dir'>
+				<td><a href='#' onclick="window.location.href=$('#location a:nth-last-child(2)').attr('href'); return false;" title="Parent folder">...</a></td>
+				<td colspan="3"></td>
+			</tr>
 			<xsl:for-each select="S3:ListBucketResult/S3:CommonPrefixes">
 				<tr class="s3dir">
-					<td><a href="#" onclick="browse(this.getAttribute('prefix')); return false"><xsl:attribute name="prefix"><xsl:value-of select="S3:Prefix"/></xsl:attribute><xsl:value-of select="S3:Key"/><xsl:value-of select="S3:Prefix"/></a></td>
+					<td><a href="#" onclick="browse(this.getAttribute('prefix')); return false"><xsl:attribute name="prefix"><xsl:value-of select="S3:Prefix"/></xsl:attribute><xsl:attribute name="title"><xsl:value-of select="S3:Prefix"/></xsl:attribute><xsl:value-of select="S3:Key"/><xsl:value-of select="substring-after(S3:Prefix,/S3:ListBucketResult/S3:Prefix)"/></a></td>
 					<td colspan="3"></td>
 				</tr>
 			</xsl:for-each>
 			<xsl:for-each select="S3:ListBucketResult/S3:Contents">
 				<tr>
 					<xsl:attribute name="key"><xsl:value-of select="S3:Key"/></xsl:attribute>
-					<td><a onclick="return view(this.getAttribute('key')); return false"><xsl:attribute name="key"><xsl:value-of select="S3:Key"/></xsl:attribute><xsl:value-of select="S3:Key"/></a></td>
+					<td><a onclick="return view(this.getAttribute('key')); return false"><xsl:attribute name="key"><xsl:value-of select="S3:Key"/></xsl:attribute><xsl:attribute name="title"><xsl:value-of select="S3:Key"/></xsl:attribute><xsl:value-of select="substring-after(S3:Key,/S3:ListBucketResult/S3:Prefix)"/></a></td>
 					<td><xsl:value-of select="S3:LastModified"/></td>
 					<td><xsl:value-of select="S3:Size"/></td>
 					<td><a class='del' onclick="return deleteKey($(this).closest('tr'))"><img src="assets/images/delete.png" title="Delete" alt="Delete" /></a></td>
