@@ -1,6 +1,6 @@
 {
 	"name": "S3Browser",
-	"version": "0.3",
+	"version": "0.4",
 	"description": "Browse and Upload files to Amazon's S3 in Chrome. Based on anotherjesse's S3 extension",
 	"browser_action": {
 		"default_icon": "assets/images/logo.png"

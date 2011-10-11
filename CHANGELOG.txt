@@ -1,3 +1,9 @@
+2011-10-11 (Flynsarmy):
+- Breadcrumbs implemented
+- Uploads now go into the current folder instead of bucket root
+- Subfolders now just show filenames. Hover for full path name
+- Added 'Up' link in file list
+
 2011-06-28 (Flynsarmy):
 - Massive performance improvement for large uploads
 - Upload progress now displayed
