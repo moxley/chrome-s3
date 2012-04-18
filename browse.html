@@ -48,12 +48,19 @@
 			fm.listKeys();
 		}
 
+		function getQuery() {
+			return $('input[name=q]', 'form#search').val();
+		}
+
+		function onSearchClick(ev) {
+			ev.preventDefault();
+			browse(getQuery());
+		}
+
 		function view(key) {
 			window.location.href = S3Ajax.signedURL(bucket, key);
 			return false;
 		}
-
-		var xslt = new XSLTProcessor();
 
 		function deleteKey( $TR ) {
 			var key = $TR.attr('key');
@@ -62,9 +69,62 @@
 			}
 		}
 
+		function setAddress() {
+			console.log("setAddress");
+			$('input[name=q]', 'form#search').val(prefix);
+			$('form#search').bind('submit', onSearchClick);
+		}
+
+		// Escape for HTML
+		function h(str) {
+			if (typeof(str) == 'number') {
+				return str;
+			}
+			else if (!str || !str.length) {
+				return '';
+			}
+			var i, c, out = '',
+				trans = {
+					'<': '&lt;', '>': '&gt;',
+					'"': '&quot;', "'": '&#39;',
+					'&': '&amp;'
+				};
+			for (i = 0; i < str.length; i += 1) {
+				c = str[i];
+				out += trans[c] || c;
+			}
+			return out;
+		}
+
+		function parseNode(node) {
+			var i, obj = {}, child, value = null, elementCount = 0;
+			for (i = 0; i < node.childNodes.length; i += 1) {
+				child = node.childNodes[i];
+				if (child.nodeType == 1) { // Element
+					elementCount++;
+					value = parseNode(child);
+				}
+				else { // Text
+					value = child.nodeValue;
+				}
+				obj[child.tagName] = value;
+			}
+
+			if (elementCount == 0) {
+				return value;
+			}
+			else {
+				return obj;
+			}
+		}
+
+		function basename(path) {
+			var cleanPath = path.replace(/\/$/, '');
+			return cleanPath.replace(/^([^\/]*\/)+/, '');
+		}
+
 		var fm = {
 			init: function() {
-
 				// BACK BUTTON IS BROKEN
 				if (!chrome.extension) {
 					window.location.reload();
@@ -82,15 +142,11 @@
 					document.body.setAttribute("unauth", true);
 				}
 
-				var req = new XMLHttpRequest();
-				req.open("GET", chrome.extension.getURL("keys.xsl"), false);
-				req.send(null);
-
-				xslt.importStylesheet(req.responseXML);
 				$('#location').html("<a href='account.html'>s3</a>://<a href=\"browse.html?"+bucket+"\">"+bucket+"</a><span id='key_location'></span>")
 				fm.listKeys();
 			},
 
+			// List objects
 			listKeys: function() {
 				var keylist = $('#keylist')[0];
 				if (keylist) {
@@ -111,12 +167,63 @@
 					}
 				}
 
-				$('#active').addClass('busy')
+				setAddress();
+
+				$('#active').addClass('busy');
 				S3Ajax.listKeys(bucket,
 					{prefix: prefix, delimiter: '/'},
 					function (req) {
-						var fragment = xslt.transformToFragment(req.responseXML, document);
-						$('#active')[0].appendChild(fragment);
+						myReq = req;
+						// Parse the data
+						var objects = [], i, nodes, prefixes = [];
+						nodes = req.responseXML.childNodes[0].childNodes;
+						for (i = 0; i < nodes.length; i++) {
+							if (nodes[i].tagName == 'Contents') {
+								objects.push(parseNode(nodes[i]));
+							}
+							if (nodes[i].tagName == 'CommonPrefixes') {
+								prefixes.push(parseNode(nodes[i])['Prefix']);
+							}
+						}
+
+						var html = '';
+						html += '<table cellspacing="0" id="keylist">';
+						
+						// Prefixes
+						var p, cleanPrefix;
+						for (i = 0; i < prefixes.length; i++) {
+							p = prefixes[i];
+							html += '<tr class="s3dir">';
+							cleanPrefix = basename(p);
+							html += '<td><a href="#" onclick="browse(this.getAttribute(\'prefix\')); return false" prefix="' + h(p) + '" title="' + h(p) + '">' + h(cleanPrefix) + '</a></td>';
+							html += '<td colspan="3"></td>'
+							html += '</tr>';
+						}
+
+						// Objects
+						var obj, cleanKey;
+						for (i = 0; i < objects.length; i++) {
+							obj = objects[i];
+							cleanKey = basename(obj.Key);
+
+							html += '<tr key="' + h(obj.Key) + '">' +
+								'<td>' +
+								'  <a onclick="return view(this.getAttribute(\'key\')); return false" ' +
+								'    key="' + h(obj.Key) + '" ' +
+								'    title="' + h(obj.Key) + '">' + h(cleanKey) + '</a>' +
+								'  </td>' +
+								'  <td>' + h(obj.LastModified) + '</td>' +
+								'  <td>' + h(obj.Size) + '</td>' +
+								'  <td>' +
+								'    <a class="del" onclick="return deleteKey($(this).closest(\'tr\'))">' +
+								'      <img src="assets/images/delete.png" title="Delete" alt="Delete">' +
+								'    </a>' +
+								'  </td>' +
+								'</tr>';
+						}
+
+						html += '</table>';
+						$('#active').html(html);
 
 						$('#active').removeClass('busy');
 					}, function(req) {
@@ -211,17 +318,22 @@
 	</script>
 </head>
 <body>
-	<h2 id="location"></h2>
 	<form id='frm_upload' style="position:absolute;left:-1000px">
 		Upload: <input type='file' id='upload' multiple="nultiple" name='upload' onchange="upload_files(this)" />
 	</form>
 	<div id='actions'>
+		<form method="get" id="search" style="display: inline; margin-right: 30px;">
+			<input type="text" name="q" style="" size="80"/>
+			<input type="submit" value="Go">
+		</form>
+
 		<a onclick="window.location.href=$('#location a:nth-last-child(2)').attr('href'); return false;"><img src='assets/images/arrow_up.png' title='Up' /></a>
 		<a onclick="window.location.reload()"><img src='assets/images/arrow_refresh.png' title='Refresh' /></a>
 		<a onclick="$('#upload').trigger('click'); return false;"><img src='assets/images/add.png' title='Upload Files' /></a>
 	</div>
 	<div style="clear:both"></div>
 
+	<h2 id="location"></h2>
 	<div id="active"></div>
 </body>
 </html>

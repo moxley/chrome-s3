@@ -157,6 +157,7 @@ S3Ajax = {
 	 Given a bucket name and parameters, list keys in the bucket.
 	 */
 	listKeys: function(bucket, params, cb, err_cb) {
+		console.log("S3Ajax listKeys. params=", params);
 		return this.httpClient({
 			method: 'GET',
 			bucket: bucket,
